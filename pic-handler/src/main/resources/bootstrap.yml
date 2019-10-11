@@ -1,0 +1,5 @@
+spring.cloud.vault:
+  token: s.M8D76JOdWrjd81we2CTnj8Zw
+  scheme: http
+  host: 192.168.3.209
+  port: 8200
