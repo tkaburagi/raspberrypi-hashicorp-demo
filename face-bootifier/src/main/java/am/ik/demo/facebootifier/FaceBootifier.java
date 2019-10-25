@@ -27,6 +27,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.rectangle;
 public class FaceBootifier implements Function<String, byte[]> {
 
     private final Counter counter;
+    private final String dir = "/Users/kabu/Desktop/";
 
     @Autowired
     SlackClient slackClient;
@@ -37,24 +38,46 @@ public class FaceBootifier implements Function<String, byte[]> {
 
     @Override
     public byte[] apply(String s) {
+
+        File file = new File(dir);
+
+        FilenameFilter filter = new FilenameFilter() {
+            public boolean accept(File f, String name)
+            {
+                return name.startsWith("face-");
+            }
+        };
+
+        String f[] = file.list(filter);
+
+
+
         try {
-            VaultTransitUtil vaultTransitUtil = new VaultTransitUtil();
-            byte[] decode = Base64.getDecoder().decode(vaultTransitUtil.decryptData(s));
+//            VaultTransitUtil vaultTransitUtil = new VaultTransitUtil();
+//            byte[] decode = Base64.getDecoder().decode(vaultTransitUtil.decryptData(s));
+            byte[] decode = Base64.getDecoder().decode(s);
             try (ByteArrayInputStream stream = new ByteArrayInputStream(decode)) {
                 Path input = Files.createTempFile("input-", ".png");
+                String original_filename = "face-" + RandomStringUtils.randomAlphabetic(5) + ".png";
                 String filename = "bootified-face-" + RandomStringUtils.randomAlphabetic(5) + ".png";
-                Path output = Files.createFile(Paths.get("/Users/kabu/Desktop/" + filename));
+                Path output = Files.createFile(Paths.get(dir + filename));
+                Path output_original = Files.createFile(Paths.get(dir + original_filename));
 
                 input.toFile().deleteOnExit();
                 output.toFile().deleteOnExit();
                 Files.copy(stream, input, StandardCopyOption.REPLACE_EXISTING);
                 FaceDetector faceDetector = new FaceDetector(counter);
+
                 Mat source = imread(input.toAbsolutePath().toString());
+                Mat source_original = imread(input.toAbsolutePath().toString());
+
                 faceDetector.detectFaces(source, FaceBootifier::bootify);
                 imwrite(output.toFile().getAbsolutePath(), source);
+                imwrite(output_original.toFile().getAbsolutePath(), source_original);
+
                 System.out.println(output.toFile().getAbsolutePath());
                 byte[] bootified = Base64.getEncoder()
-                    .encode(Files.readAllBytes(output));
+                        .encode(Files.readAllBytes(output));
                 Files.deleteIfExists(input);
 
                 slackClient.sendMessage(Files.readAllBytes(output), filename);
@@ -65,7 +88,6 @@ public class FaceBootifier implements Function<String, byte[]> {
             throw new UncheckedIOException(e);
         }
     }
-
 
     public static void bootify(Mat source, Rect r) {
         int x = r.x(), y = r.y(), w = r.width();
@@ -84,15 +106,15 @@ public class FaceBootifier implements Function<String, byte[]> {
         fillConvexPoly(source, points.position(0), 6, Scalar.GREEN, CV_AA, 0);
 
         circle(source, new Point(x + w / 2, y + w / 2), w / 4,
-            Scalar.WHITE, -1, CV_AA, 0);
+                Scalar.WHITE, -1, CV_AA, 0);
         circle(source, new Point(x + w / 2, y + w / 2), w / 6,
-            Scalar.GREEN, -1, CV_AA, 0);
+                Scalar.GREEN, -1, CV_AA, 0);
 
         rectangle(source, new Point(x + w / 2 - w / 12, y + w / 5),
-            new Point(x + w / 2 + w / 12, y + w / 2),
-            Scalar.GREEN, -1, CV_AA, 0);
+                new Point(x + w / 2 + w / 12, y + w / 2),
+                Scalar.GREEN, -1, CV_AA, 0);
         rectangle(source, new Point(x + w / 2 - w / 20, y + w / 5),
-            new Point(x + w / 2 + w / 20, y + w / 2),
-            Scalar.WHITE, -1, CV_AA, 0);
+                new Point(x + w / 2 + w / 20, y + w / 2),
+                Scalar.WHITE, -1, CV_AA, 0);
     }
 }
