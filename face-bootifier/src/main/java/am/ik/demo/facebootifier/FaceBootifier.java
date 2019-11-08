@@ -53,18 +53,20 @@ public class FaceBootifier implements Function<String, byte[]> {
 
 
         try {
-//            VaultTransitUtil vaultTransitUtil = new VaultTransitUtil();
-//            byte[] decode = Base64.getDecoder().decode(vaultTransitUtil.decryptData(s));
-            byte[] decode = Base64.getDecoder().decode(s);
+            VaultTransitUtil vaultTransitUtil = new VaultTransitUtil();
+            byte[] decode = Base64.getDecoder().decode(vaultTransitUtil.decryptData(s));
+//            byte[] decode = Base64.getDecoder().decode(s);
             try (ByteArrayInputStream stream = new ByteArrayInputStream(decode)) {
-                Path input = Files.createTempFile("input-", ".png");
-                String original_filename = "face-" + RandomStringUtils.randomAlphabetic(5) + ".png";
-                String filename = "bootified-face-" + RandomStringUtils.randomAlphabetic(5) + ".png";
+                Path input = Files.createTempFile("input-", ".jpg");
+                String original_filename = "face-" + RandomStringUtils.randomAlphabetic(5) + ".jpg";
+                String filename = "bootified-face-" + RandomStringUtils.randomAlphabetic(5) + ".jpg";
                 Path output = Files.createFile(Paths.get(dir + filename));
                 Path output_original = Files.createFile(Paths.get(dir + original_filename));
 
                 input.toFile().deleteOnExit();
                 output.toFile().deleteOnExit();
+                output_original.toFile().deleteOnExit();
+
                 Files.copy(stream, input, StandardCopyOption.REPLACE_EXISTING);
                 FaceDetector faceDetector = new FaceDetector(counter);
 
@@ -79,6 +81,9 @@ public class FaceBootifier implements Function<String, byte[]> {
                 byte[] bootified = Base64.getEncoder()
                         .encode(Files.readAllBytes(output));
                 Files.deleteIfExists(input);
+
+                System.out.println("FILENAME" + filename);
+                System.out.println("FILECONTENT" + output);
 
                 slackClient.sendMessage(Files.readAllBytes(output), filename);
 
