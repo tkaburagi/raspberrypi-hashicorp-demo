@@ -1,8 +1,12 @@
 #!/bin/sh
 
+echo "### Killing ..."
+
 pkill consul
 pkill vault
 pkill java
+
+sleep 10
 
 echo "### Setting Values ..."
 
@@ -18,6 +22,8 @@ if [ $SLACK_TOKEN = ""]; then
 	exit 1
 fi
 
+sleep 10
+
 cat << EOF > /Users/kabu/hashicorp/consul/pidemo/config.json
 {
   "service": {
@@ -25,6 +31,12 @@ cat << EOF > /Users/kabu/hashicorp/consul/pidemo/config.json
     "address": "${MAC}",
     "tags": ["spring-boot"],
     "port": 8080,
+     "check": {
+      "id": "face-bootifier-actuator",
+      "name": "Spring Actuator Health",
+      "http": "http://${MAC}:8080/actuator/health",
+      "interval": "10s"
+    },
     "connect": {
       "sidecar_service": {
         "tags": ["sidecar"],

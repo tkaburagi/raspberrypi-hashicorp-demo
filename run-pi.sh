@@ -12,9 +12,16 @@ if [ $PI = ""]; then
 	exit 1
 fi
 
+sleep 10
+
+echo "### Killing ..."
+
 pkill consul
 pkill vault
 pkill java
+
+sleep 10
+
 
 cat << EOF > /home/pi/demo/consul-config/config.json
 {
@@ -23,6 +30,12 @@ cat << EOF > /home/pi/demo/consul-config/config.json
     "address": "$PI",
     "tags": ["spring-boot"],
     "port": 8080,
+    "check": {
+      "id": "pic-encrypter-actuator",
+      "name": "Spring Actuator Health",
+      "http": "http://${PI}:8080/actuator/health",
+      "interval": "10s"
+    },
     "connect": {
       "sidecar_service": {
         "port": 20001,
