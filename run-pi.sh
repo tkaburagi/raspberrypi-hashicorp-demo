@@ -1,6 +1,7 @@
 #!/bin/sh
 
 echo "### Setting Values ..."
+sleep 10
 
 if [ $MAC = ""]; then
 	echo "No value MAC"
@@ -12,16 +13,15 @@ if [ $PI = ""]; then
 	exit 1
 fi
 
-sleep 10
+export VAULT_HOST=${MAC}
+export VAULT_TOKEN=s.M8D76JOdWrjd81we2CTnj8Zw
 
 echo "### Killing ..."
+sleep 10
 
 pkill consul
 pkill vault
 pkill java
-
-sleep 10
-
 
 cat << EOF > /home/pi/demo/consul-config/config.json
 {
@@ -61,17 +61,16 @@ cat << EOF > /home/pi/demo/consul-config/config.json
 EOF
 
 echo "### Starting Consul Agent ..."
+sleep 10
 
 consul agent -client=$PI -data-dir=/home/pi/demo/consul-data -join=$MAC -config-dir=/home/pi/demo/consul-config &
 
-sleep 10
-
 echo "### Starting Consul Sidecar ..."
+sleep 10
 
 CONSUL_HTTP_ADDR=$PI:8500 consul connect proxy -sidecar-for pic-encrypter &
 
+echo "### Starting Java ..."
 sleep 10
 
-echo "### Starting Java ..."
-
-java -jar /home/pi/demo/demo-0.0.1-SNAPSHOT.jar &
+java -jar /home/pi/demo/demo-0.0.1-SNAPSHOT.jar  &
