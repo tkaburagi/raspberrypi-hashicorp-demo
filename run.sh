@@ -8,7 +8,6 @@ pkill java
 pkill prometheus
 
 echo "### Setting Values ..."
-sleep 10
 
 if [ $MAC = ""]; then
 	echo "No value MAC address"
@@ -28,6 +27,8 @@ if [ $PI = ""]; then
 else
   echo "PI LAN IP = " $PI
 fi
+
+sleep 10
 
 cat << EOF > /Users/kabu/hashicorp/consul/pidemo/config.json
 {

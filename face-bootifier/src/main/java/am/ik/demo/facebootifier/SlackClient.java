@@ -13,7 +13,7 @@ public class SlackClient {
 
     public SlackClient() {
         try {
-            this.session = SlackSessionFactory.createWebSocketSlackSession("");
+            this.session = SlackSessionFactory.createWebSocketSlackSession("xoxb-270278657637-779845447409-WfyCWR4VbkUXTh6qOwSTn2CZ");
             session.connect();
         } catch (IOException e) {
         }
