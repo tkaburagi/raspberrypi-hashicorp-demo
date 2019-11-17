@@ -5,3 +5,5 @@
 /face-bootifier/.localized
 /face-bootifier/.idea/*
 /data/
+
+.DS_Store
