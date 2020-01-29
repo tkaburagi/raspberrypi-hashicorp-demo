@@ -1,9 +1,12 @@
 /face-bootifier/target/
 /pic-handler/target/
-
+/.idea
+/.idea/*
 /face-bootifier/.DS_Store
 /face-bootifier/.localized
 /face-bootifier/.idea/*
+/face-bootifier/src/main/java/am/ik/demo/facebootifier/SlackClient.java
 /data/
-
+run-kabu-env.sh
 .DS_Store
+

@@ -21,6 +21,18 @@ if [ $SLACK_TOKEN = ""]; then
 	exit 1
 fi
 
+if [ $VAULT_TOKEN = ""]; then
+  echo "No value VAULT_TOKEN"
+  exit 1
+fi
+
+if [ $HOME_DIR = ""]; then
+  echo "No value HOME_DIR"
+  exit 1
+else
+  echo "HOME DIR = " $HOME_DIR
+fi
+
 if [ $PI = ""]; then
   echo "No value PI address"
   exit 1
@@ -30,7 +42,7 @@ fi
 
 sleep 10
 
-cat << EOF > /Users/kabu/hashicorp/consul/pidemo/config.json
+cat << EOF > ${HOME_DIR}/consul-config.json
 {
   "service": {
     "name": "face-bootifier",
@@ -60,7 +72,7 @@ cat << EOF > /Users/kabu/hashicorp/consul/pidemo/config.json
 }
 EOF
 
-cat << EOF > /Users/kabu/prometheus/prometheus-template.yml
+cat << EOF > ${HOME_DIR}/prometheus-template.yml
 # my global config
 global:
   scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
@@ -102,7 +114,7 @@ cd face-bootifier
 cd ..
 
 export VAULT_HOST=${MAC}
-export VAULT_TOKEN=s.M8D76JOdWrjd81we2CTnj8Zw
+export VAULT_TOKEN=${VAULT_TOKEN}
 export SLACK_TOKEN=${SLACK_TOKEN}
 
 echo ${SLACK_TOKEN}
@@ -110,26 +122,44 @@ echo ${SLACK_TOKEN}
 echo "### Starting Consul ..."
 sleep 10
 
-consul agent -server -bind=0.0.0.0 \
+consul agent -server -bind=${MAC} \
 -client=0.0.0.0 \
--data-dir=/Users/kabu/hashicorp/consul/raspberry-data \
+-data-dir=${HOME_DIR}/raspberry-data \
 -bootstrap-expect=1 -ui \
--config-dir=/Users/kabu/hashicorp/consul/pidemo &
+-config-dir=${HOME_DIR}/consul-config.json &
 
 
 echo "### Starting Vault ..."
 sleep 10
 
-source ~/hashicorp/vault/scripts/vault-kms-setup.sh
-vault server -config ~/hashicorp/vault/configs/local-config-oss.hcl start &
+cat << EOF > ${HOME_DIR}/local-config-oss.hcl
+storage "file" {
+  path = "${HOME_DIR}/vault-oss-data"
+}
 
+listener "tcp" {
+  address     = "0.0.0.0:8200"
+  tls_disable = 1
+}
+
+# seal "awskms" {
+#   region   = "ap-northeast-1"
+#   endpoint = "https://kms.ap-northeast-1.amazonaws.com"
+# }
+
+api_addr = "http://0.0.0.0:8200"
+
+ui = true
+EOF
+
+vault server -config ${HOME_DIR}/local-config-oss.hcl start &
 
 consul connect proxy -sidecar-for face-bootifier &
 
 echo "### Starting Java ..."
 sleep 10
 
-java -jar /Users/kabu/hashicorp/intellij/raspberrypi-hashicorp-demo/face-bootifier/target/face-bootifier-0.0.1-SNAPSHOT.jar &
+java -jar ${HOME_DIR}/raspberrypi-hashicorp-demo/face-bootifier/target/face-bootifier-0.0.1-SNAPSHOT.jar &
 
 
 echo "### Starting Consul Exporter"
@@ -140,7 +170,7 @@ sleep 10
 echo "### Starting Prometheus ..."
 sleep 10
 
-prometheus --config.file=/Users/kabu/prometheus/prometheus-template.yml &
+prometheus --config.file=${HOME_DIR}/prometheus-template.yml &
 
 echo "### Starting Grafana ..."
 

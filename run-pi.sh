@@ -13,8 +13,20 @@ if [ $PI = ""]; then
 	exit 1
 fi
 
+if [ $VAULT_TOKEN = ""]; then
+  echo "No value VAULT_TOKEN"
+  exit 1
+fi
+
+if [ $HOME_DIR = ""]; then
+  echo "No value HOME_DIR"
+  exit 1
+else
+  echo "HOME DIR = " $HOME_DIR
+fi
+
 export VAULT_HOST=${MAC}
-export VAULT_TOKEN=s.M8D76JOdWrjd81we2CTnj8Zw
+export VAULT_TOKEN=${VAULT_TOKEN}
 
 echo "### Killing ..."
 sleep 10
@@ -23,7 +35,7 @@ pkill consul
 pkill vault
 pkill java
 
-cat << EOF > /home/pi/demo/consul-config/config.json
+cat << EOF > ${HOME_DIR}/consul-config.json
 {
   "service": {
     "name": "pic-encrypter",
@@ -63,7 +75,7 @@ EOF
 echo "### Starting Consul Agent ..."
 sleep 10
 
-consul agent -client=$PI -data-dir=/home/pi/demo/consul-data -join=$MAC -config-dir=/home/pi/demo/consul-config &
+consul agent -client=$PI -data-dir=${HOME_DIR}/consul-data -join=$MAC -config-dir=${HOME_DIR}/consul-config.json &
 
 echo "### Starting Consul Sidecar ..."
 sleep 10
@@ -73,4 +85,4 @@ CONSUL_HTTP_ADDR=$PI:8500 consul connect proxy -sidecar-for pic-encrypter &
 echo "### Starting Java ..."
 sleep 10
 
-java -jar /home/pi/demo/demo-0.0.1-SNAPSHOT.jar  &
+java -jar ${HOME_DIR}/demo-0.0.1-SNAPSHOT.jar  &
