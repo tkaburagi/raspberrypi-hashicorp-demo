@@ -48,6 +48,7 @@ And stop all processes by `./pkill.sh`.
 ## Run
 * Hit the `./run.sh` on Mac
 * Hit the `run-pi.sh` on RPi
+* Import the Grafana Dashboad at `http://localhost:3000/`
 
 ## Demo 
 1. Take the Picture of your(or your friends') face!
@@ -59,3 +60,4 @@ And stop all processes by `./pkill.sh`.
 5. Hit the api, `curl ${PI}:8080/api/v1/upstream-pic`
 	* This Upstream the encrypted photo to Mac and hit the `face-bootifier` api.
 	* As you can see the source codes, `face-bootifier` decrypt the photo -> detect the face -> then bootify each face -> send the bootified photo to the Slack. 
+6. You can see Grafana Dashboard, `http://localhost:3000/`
